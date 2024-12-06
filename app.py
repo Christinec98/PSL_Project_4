@@ -1,9 +1,9 @@
 # !pip install Dash
 
 # !pip install dash_bootstrap_components
-
-# %%capture
-# %run project_4.ipynb
+#
+#%%capture
+#%run project_4.ipynb
 
 from logging import debug
 from typing import Dict
@@ -13,8 +13,8 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html
 from dash.dependencies import ALL, State
 from project_4 import get_displayed_movies, get_recommended_movies
+#from flask import Flask
 
-# import time
 import os
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], 
@@ -160,16 +160,16 @@ def on_getting_recommendations(style, ratings, ids):
     recommended_movies = get_recommended_movies(rating_input)
     return [get_movie_card(movie) for idx, movie in recommended_movies.iterrows()]
 
-# %%time
+## %%time
 #if __name__ == "__main__":
 #    # app.run_server(port=9000, debug=True)
 #    # app.run_server(mode="inline", port=9000, debug=True)
-#    app.run_server(mode="external", port=8000, debug=True)
-
+#    # app.run_server(mode="external", port=8000, debug=True)
 
 
 
 if __name__ == "__main__":
     app.run_server(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
+
 
 

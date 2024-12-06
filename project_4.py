@@ -1,3 +1,7 @@
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
+
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -8,7 +12,7 @@ import math
 
 # System I: Recommendation Based on Popularity
 
-movie_ratings = pd.read_csv("movie_ratings.csv")
+movie_ratings = pd.read_csv("movie_ratings.csv" )
 
 movie_ratings.head()
 
@@ -52,20 +56,18 @@ filtered_df = movies[movies["MovieID"].isin(top_10_ids)]
 print("Top 10 movies based on popularity:")
 filtered_df
 
+# for i in range(len(top_10_ids)):
+#     print(f'#{i + 1}')
+#     movie_id = top_10_ids[i]
+#     img = mpimg.imread(f'MovieImages/{movie_id}.jpg')
+#     movie_title = list(filtered_df[filtered_df['MovieID'] == movie_id]['Title'])[0]
+#     plt.imshow(img)
+#     plt.axis('off')
+#     plt.title(movie_title)
+#     plt.show()
 
-#for i in range(len(top_10_ids)):
-#    print(f'#{i + 1}')
-#    movie_id = top_10_ids[i]
-#    img = mpimg.imread(f'MovieImages/{movie_id}.jpg')
-#    movie_title = list(filtered_df[filtered_df['MovieID'] == movie_id]['Title'])[0]
-#    plt.imshow(img)
-#    plt.axis('off')
-#    plt.title(movie_title)
-#    plt.show()
-#    
-#
 
- # Adjust the image in 2 lines horizontally
+# Adjust the top10 movie images in 2 lines horizontally
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import textwrap
@@ -77,27 +79,27 @@ cols = 5  # 10 movies total, 5 per row
 fig, axes = plt.subplots(rows, cols, figsize=(20, 10))  # Create a 2x5 grid for the movies
 
 for i, ax in enumerate(axes.flatten()):  # Flatten the 2D axes array for easy iteration
-     movie_id = top_10_ids[i]
-     img = mpimg.imread(f'MovieImages/{movie_id}.jpg')  # Load movie image
-     movie_title = list(filtered_df[filtered_df['MovieID'] == movie_id]['Title'])[0]
-
-     wrapped_title = f"#{i + 1} " + "\n".join(textwrap.wrap(movie_title, width=20))  # Adjust width as needed for line breaks
-
-     ax.imshow(img, aspect='auto')  # Display image with aspect set to 'auto'
-     ax.axis('off')  # Turn off axis
-     ax.set_title(wrapped_title, fontsize=14, loc='center')  # Center-align the title with smaller font size
-
-     # Adjust title position
-     ax.title.set_position([0.5, -0.1])  # Title below the image; [0.5, -0.1] moves it to the center, slightly below
-
-     # Set fixed aspect ratio and anchor to the left
-     ax.set_aspect(1)  # Keep the axes square
-     ax.set_anchor('W')  # Align images to the left
+    movie_id = top_10_ids[i]
+    img = mpimg.imread(f'MovieImages/{movie_id}.jpg')  # Load movie image
+    movie_title = list(filtered_df[filtered_df['MovieID'] == movie_id]['Title'])[0]
+    
+    wrapped_title = f"#{i + 1} " + "\n".join(textwrap.wrap(movie_title, width=20))  # Adjust width as needed for line breaks
+    
+    ax.imshow(img, aspect='auto')  # Display image with aspect set to 'auto'
+    ax.axis('off')  # Turn off axis
+    ax.set_title(wrapped_title, fontsize=14, loc='center')  # Center-align the title with smaller font size
+    
+    # Adjust title position
+    ax.title.set_position([0.5, -0.1])  # Title below the image; [0.5, -0.1] moves it to the center, slightly below
+    
+    # Set fixed aspect ratio and anchor to the left
+    ax.set_aspect(1)  # Keep the axes square
+    ax.set_anchor('W')  # Align images to the left
 
 plt.tight_layout()  # Adjust layout for better spacing
-#plt.show()
-
-
+# plt.show()
+fig.savefig("top_movies.png")
+plt.close(fig)
 
 
 # System II: Recommendation Based on IBCF
@@ -196,11 +198,19 @@ def myIBCF(newuser):
 
     finalResult = np.zeros(newuser.shape[0])
     
-    for i in range(newuser.shape[0]):
-        if np.isnan(newuser[i]):
-            finalResult[i] = np.dot(similarity_sorted[i, :][validIndices[i]], newuser[validIndices[i]]) / np.sum(similarity_sorted[i, :][validIndices[i]])
+    for i in range(newuser.shape[0]):   
+        # if np.isnan(newuser[i]):
+        #     finalResult[i] = np.dot(similarity_sorted[i, :][validIndices[i]], newuser[validIndices[i]]) / np.sum(similarity_sorted[i, :][validIndices[i]])
+        # else:
+        #     finalResult[i] = newuser[i]
+        
+        # #  fix RuntimeWarning: invalid value encountered in scalar divide by 0 in denominator
+        denominator = np.sum(similarity_sorted[i, :][validIndices[i]])
+        if denominator > 0:
+            finalResult[i] = np.dot(similarity_sorted[i, :][validIndices[i]], newuser[validIndices[i]]) / denominator
         else:
-            finalResult[i] = newuser[i]
+            finalResult[i] = 0  # Or some other default value
+
     
     # in finalResult, convert to NaN anything that was already rated
     for i in range(len(finalResult)):
@@ -216,6 +226,9 @@ def myIBCF(newuser):
     sorted_indices_no_nans = sorted_indices[-sorted_newuser_IBCF_no_nans.shape[0]:]
     
     print(f'Scores from IBCF: {sorted_newuser_IBCF_no_nans[:10]}')
+    # print(f"Final scores before sorting: {finalResult}")
+    # print(f"Top recommended indices: {sorted_indices[:10]}")
+
     movie_recs = movie_ratings.columns[sorted_indices_no_nans[:10]]
     movie_recs = list(movie_recs)
     
@@ -266,7 +279,6 @@ def get_recommended_movies(new_user_ratings):
     movie_ids_cleaned = list(map(int, movie_ids_cleaned))
     movie_recs = movies[movies['MovieID'].isin(movie_ids_cleaned)]
     return movie_recs
-
 
 
 
